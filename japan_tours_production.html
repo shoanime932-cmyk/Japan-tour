@@ -1,0 +1,1405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>JAPAN TOURS — 10-Day Curated Journey</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500;700&family=Playfair+Display:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --cream: #F5F0E8;
+            --warm-white: #FAF7F2;
+            --oat: #E8DFD0;
+            --amber: #C4956A;
+            --deep-amber: #A67B5B;
+            --lime-accent: #D4F87A;
+            --charcoal: #1A1A1A;
+            --pure-black: #0A0A0A;
+            --mist: rgba(245, 240, 232, 0.08);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html {
+            font-size: 16px;
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--pure-black);
+            color: var(--cream);
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            max-width: 430px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        /* ============================================================
+           HERO — FIX #1: CORRECT LAYER ORDER
+           z-index stack:
+             1 = sky gradient (behind everything)
+             2 = JAPAN typography (behind mountain foreground)
+             3 = mountain image (clipped so sky is transparent via mask)
+             4 = kimono figure
+             5 = sakura branch overlay
+             6 = UI chrome (buttons, social, polaroids)
+        ============================================================ */
+        .hero {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+            min-height: 700px;
+            overflow: hidden;
+            background: var(--pure-black);
+        }
+
+        /* ── PLANE 0: Sky colour wash (bottommost) */
+        .hero-sky {
+            position: absolute;
+            inset: 0;
+            z-index: 1;
+            background: linear-gradient(
+                180deg,
+                #b8c8d8 0%,        /* pale morning sky */
+                #d4c8b8 30%,       /* warm haze horizon */
+                #c8a888 55%,       /* amber glow at ridge */
+                rgba(10,10,10,0.0) 56%
+            );
+        }
+
+        /* ── PLANE 1: JAPAN display type — sits BEHIND the mountain image */
+        .hero-type {
+            position: absolute;
+            /* Vertically center text so letters straddle the mountain ridge.
+               The mountain image covers from ~45% down, so letterforms that
+               extend above 45% remain visible; the mountain renders on top  */
+            top: 28%;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 2;           /* BELOW mountain (z-index 3) */
+            width: 100%;
+            text-align: center;
+            pointer-events: none;
+            will-change: transform;
+        }
+
+        .hero-type h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(72px, 22vw, 96px);
+            font-weight: 300;
+            letter-spacing: 0.1em;
+            line-height: 0.85;
+            color: transparent;
+            /* Warm cream outline — glows against the sky, then gets
+               partially occluded by the mountain PNG above */
+            -webkit-text-stroke: 1.4px rgba(245, 240, 232, 0.82);
+            text-stroke: 1.4px rgba(245, 240, 232, 0.82);
+            text-shadow:
+                0 0 60px rgba(196, 149, 106, 0.18),
+                0 0 120px rgba(196, 149, 106, 0.08);
+            text-transform: uppercase;
+        }
+
+        /* ── PLANE 2: Mountain landscape — CSS mask removes sky so the
+           JAPAN type shows through the top portion of the image.
+           The mask is a hard linear-gradient: transparent at top,
+           solid from ~38% down (the approximate ridge line). */
+        .hero-bg {
+            position: absolute;
+            inset: 0;
+            z-index: 3;           /* ABOVE the JAPAN text */
+            background:
+                url('https://images.unsplash.com/photo-1490806843957-31f4c9a91c65?q=80&w=2940&auto=format&fit=crop')
+                center 60% / cover no-repeat;
+            filter: saturate(0.88) contrast(1.04);
+            /* Mask: make the sky portion of the image transparent so the
+               JAPAN letters behind show through. Adjust the stop % to
+               match the actual ridge line of the chosen photo. */
+            -webkit-mask-image: linear-gradient(
+                to bottom,
+                transparent 0%,
+                transparent 36%,   /* above ridge → see-through */
+                black 52%          /* below ridge → fully opaque mountain */
+            );
+            mask-image: linear-gradient(
+                to bottom,
+                transparent 0%,
+                transparent 36%,
+                black 52%
+            );
+            will-change: transform;
+        }
+
+        /* Atmospheric toning overlay (lives inside the masked mountain layer) */
+        .hero-bg::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(
+                180deg,
+                rgba(196, 149, 106, 0.0) 0%,
+                rgba(166, 123, 91, 0.04) 40%,
+                rgba(10, 10, 10, 0.45) 72%,
+                rgba(10, 10, 10, 0.88) 100%
+            );
+        }
+
+        /* ── PLANE 3: Kimono figure — top of stack in hero */
+        .hero-figure {
+            position: absolute;
+            right: -5%;
+            bottom: 0;
+            z-index: 4;
+            height: 55vh;
+            width: auto;
+            opacity: 0;
+            animation: figureReveal 2.2s cubic-bezier(0.22, 1, 0.36, 1) 0.6s forwards;
+            /* No scroll transform per spec — acts as visual anchor */
+        }
+
+        .hero-figure img {
+            height: 100%;
+            width: auto;
+            object-fit: contain;
+            filter: saturate(1.1) contrast(1.05);
+            mask-image: linear-gradient(to bottom, black 82%, transparent 100%);
+            -webkit-mask-image: linear-gradient(to bottom, black 82%, transparent 100%);
+        }
+
+        @keyframes figureReveal {
+            from { opacity: 0; transform: translateY(28px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ── PLANE 4: Sakura overlay */
+        .sakura-branch {
+            position: absolute;
+            right: -5%;
+            top: 5%;
+            z-index: 5;
+            width: 45vw;
+            max-width: 200px;
+            opacity: 0.55;
+            pointer-events: none;
+        }
+
+        .sakura-branch img {
+            width: 100%;
+            filter: saturate(0.85) brightness(1.08);
+        }
+
+        /* ============================================================
+           NAVIGATION
+        ============================================================ */
+        .nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+            transition: all 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+            max-width: 430px;
+            margin: 0 auto;
+        }
+
+        .nav.scrolled {
+            background: rgba(10, 10, 10, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            padding: 12px 20px;
+        }
+
+        .nav-left { display: flex; align-items: center; gap: 8px; }
+
+        .nav-logo {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 10px;
+            font-weight: 500;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: var(--cream);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .globe-icon {
+            width: 14px; height: 14px;
+            border: 1.2px solid var(--cream);
+            border-radius: 50%;
+            position: relative;
+            opacity: 0.8;
+        }
+
+        .globe-icon::before {
+            content: '';
+            position: absolute;
+            top: 50%; left: -2px; right: -2px;
+            height: 1px; background: var(--cream);
+            transform: translateY(-50%);
+        }
+
+        .globe-icon::after {
+            content: '';
+            position: absolute;
+            left: 50%; top: -2px; bottom: -2px;
+            width: 1px; background: var(--cream);
+            transform: translateX(-50%);
+        }
+
+        .nav-center { display: flex; gap: 20px; }
+
+        .nav-link {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 10px; font-weight: 400;
+            letter-spacing: 0.15em; text-transform: uppercase;
+            color: var(--cream); text-decoration: none;
+            position: relative; padding-bottom: 3px;
+            opacity: 0.85; transition: opacity 0.3s ease;
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute; bottom: 0; left: 0;
+            width: 0; height: 1px; background: var(--cream);
+            transition: width 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        .nav-link:hover { opacity: 1; }
+        .nav-link:hover::after { width: 100%; }
+
+        .nav-right { display: flex; align-items: center; }
+
+        .book-pill {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 10px; font-weight: 400;
+            letter-spacing: 0.12em; text-transform: uppercase;
+            color: var(--cream); text-decoration: none;
+            padding: 8px 16px;
+            border: 1px solid rgba(245, 240, 232, 0.4);
+            border-radius: 100px;
+            transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+            background: transparent;
+        }
+
+        .book-pill:hover { background: var(--cream); color: var(--charcoal); border-color: var(--cream); }
+
+        /* ============================================================
+           HERO UI CHROME
+        ============================================================ */
+        .social-stack {
+            display: flex; flex-direction: row; gap: 16px;
+            position: absolute; right: 20px; bottom: 18%;
+            z-index: 6;
+        }
+
+        .social-icon {
+            width: 32px; height: 32px;
+            border: 1px solid rgba(245, 240, 232, 0.3);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            color: var(--cream); text-decoration: none;
+            font-size: 12px; opacity: 0.6;
+            transition: all 0.3s ease;
+            background: rgba(10, 10, 10, 0.3);
+        }
+
+        .social-icon:hover { opacity: 1; border-color: rgba(245, 240, 232, 0.7); transform: scale(1.1); }
+
+        /* ============================================================
+           POLAROID STRIP — FIX #2: scroll parallax via JS
+        ============================================================ */
+        .polaroid-strip-wrapper {
+            position: absolute;
+            bottom: 5%;
+            left: 0;
+            right: 0;
+            z-index: 6;
+            overflow: hidden;
+        }
+
+        .polaroid-strip {
+            display: flex;
+            gap: 12px;
+            padding: 0 20px 4px;
+            will-change: transform;
+            /* JS applies translateX for parallax */
+        }
+
+        .polaroid {
+            flex: 0 0 auto;
+            width: 110px;
+            background: rgba(245, 240, 232, 0.08);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(245, 240, 232, 0.15);
+            border-radius: 4px;
+            padding: 5px 5px 28px 5px;
+            cursor: pointer;
+            transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+                        background 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+                        box-shadow 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .polaroid:hover {
+            transform: translateY(-5px) !important; /* override JS translateX during hover */
+            background: rgba(245, 240, 232, 0.13);
+            box-shadow: 0 12px 30px rgba(196, 149, 106, 0.18);
+        }
+
+        .polaroid-media {
+            width: 100%; aspect-ratio: 4/5;
+            overflow: hidden; border-radius: 2px; position: relative;
+        }
+
+        .polaroid-media img {
+            width: 100%; height: 100%; object-fit: cover;
+            transition: transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        .polaroid:hover .polaroid-media img { transform: scale(1.08); }
+
+        .polaroid-caption {
+            position: absolute; bottom: 6px; left: 8px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 8px; font-weight: 400;
+            letter-spacing: 0.06em; text-transform: lowercase;
+            color: var(--cream); opacity: 0.7;
+        }
+
+        /* Main Book Button */
+        .hero-book-btn {
+            position: absolute;
+            bottom: 22%;
+            left: 20px;
+            z-index: 6;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 12px; font-weight: 500;
+            letter-spacing: 0.15em; text-transform: uppercase;
+            color: var(--charcoal); background: var(--cream);
+            padding: 14px 36px; border: none; border-radius: 4px;
+            cursor: pointer; overflow: hidden;
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .hero-book-btn::before {
+            content: ''; position: absolute; bottom: 0; left: 0;
+            width: 100%; height: 0;
+            background: linear-gradient(to top, var(--amber), var(--deep-amber));
+            transition: height 0.5s cubic-bezier(0.22, 1, 0.36, 1); z-index: -1;
+        }
+
+        .hero-book-btn:hover::before { height: 100%; }
+        .hero-book-btn:hover { color: var(--cream); transform: translateY(-2px); box-shadow: 0 8px 40px rgba(196, 149, 106, 0.3); }
+
+        /* ============================================================
+           ABOUT SECTION
+        ============================================================ */
+        .about {
+            position: relative;
+            background: var(--pure-black);
+            padding: 60px 0 80px;
+            overflow: hidden;
+        }
+
+        .about-heading {
+            display: flex; align-items: center; justify-content: center;
+            gap: 12px; margin-bottom: 40px; padding: 0 20px;
+        }
+
+        .about-heading h2 {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 22px; font-weight: 300;
+            letter-spacing: 0.1em; text-transform: uppercase;
+            color: var(--cream); white-space: nowrap; flex-shrink: 0;
+        }
+
+        .hairline {
+            flex: 1; height: 1px;
+            background: linear-gradient(to right, transparent, rgba(245, 240, 232, 0.3), transparent);
+            max-width: 80px;
+        }
+
+        .hairline-left { background: linear-gradient(to right, transparent, rgba(245, 240, 232, 0.3)); }
+        .hairline-right { background: linear-gradient(to left, transparent, rgba(245, 240, 232, 0.3)); }
+
+        .about-grid {
+            display: flex; flex-direction: column;
+            gap: 40px; padding: 0 20px;
+        }
+
+        .about-text {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 16px; line-height: 1.7;
+            color: rgba(245, 240, 232, 0.75);
+        }
+
+        .about-text p { margin-bottom: 20px; }
+
+        .accent-text {
+            color: var(--lime-accent); font-weight: 400;
+            transition: color 0.6s ease, text-shadow 0.6s ease;
+        }
+
+        .accent-text.highlighted {
+            color: var(--lime-accent);
+            text-shadow: 0 0 20px rgba(212, 248, 122, 0.2);
+        }
+
+        /* ============================================================
+           TIMELINE — FIX #3: stagger reveal via IntersectionObserver
+        ============================================================ */
+        .timeline {
+            position: relative;
+            padding-left: 28px;
+        }
+
+        .timeline-line {
+            position: absolute; left: 0; top: 0; bottom: 0; width: 1px;
+            background: linear-gradient(
+                to bottom,
+                rgba(245, 240, 232, 0.08),
+                rgba(245, 240, 232, 0.28),
+                rgba(245, 240, 232, 0.08)
+            );
+        }
+
+        /* Each node starts invisible and slides up.
+           JS IntersectionObserver adds .visible with staggered delays. */
+        .timeline-node {
+            position: relative;
+            margin-bottom: 40px;
+            opacity: 0;
+            transform: translateY(40px);
+            /* transition is set inline per node for stagger control */
+            transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+                        transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .timeline-node[data-delay="200"] {
+            transition-delay: 0.2s;
+        }
+
+        .timeline-node[data-delay="400"] {
+            transition-delay: 0.4s;
+        }
+
+        .timeline-node.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .timeline-node::before {
+            content: '';
+            position: absolute; left: -32px; top: 6px;
+            width: 6px; height: 6px; border-radius: 50%;
+            background: var(--cream);
+            border: 2px solid var(--pure-black);
+            box-shadow: 0 0 0 2px rgba(245, 240, 232, 0.28);
+        }
+
+        /* Pulse ring that fires when node becomes visible */
+        .timeline-node.visible::after {
+            content: '';
+            position: absolute; left: -36px; top: 2px;
+            width: 14px; height: 14px; border-radius: 50%;
+            border: 1px solid rgba(245, 240, 232, 0.35);
+            animation: nodePulse 1.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+
+        @keyframes nodePulse {
+            from { transform: scale(0.6); opacity: 0.8; }
+            to   { transform: scale(1.6); opacity: 0; }
+        }
+
+        .timeline-label {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 10px; font-weight: 400;
+            letter-spacing: 0.12em; text-transform: uppercase;
+            color: rgba(245, 240, 232, 0.5); margin-bottom: 4px;
+        }
+
+        .timeline-city {
+            font-family: 'Playfair Display', serif;
+            font-size: 24px; font-weight: 400;
+            color: var(--cream); margin-bottom: 12px;
+        }
+
+        .photo-cluster {
+            display: flex; gap: 10px; position: relative;
+        }
+
+        .photo-cluster img {
+            width: 130px; height: 90px; object-fit: cover;
+            border: 2px solid var(--warm-white); border-radius: 2px;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+            transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+            cursor: pointer;
+        }
+
+        .photo-cluster img:first-child { transform: rotate(-2deg); z-index: 2; }
+        .photo-cluster img:last-child  { transform: rotate(1.5deg) translateY(6px); z-index: 1; }
+        .photo-cluster:hover img:first-child { transform: rotate(-4deg) translateX(-4px); }
+        .photo-cluster:hover img:last-child  { transform: rotate(3deg) translateX(4px) translateY(2px); }
+
+        /* ============================================================
+           INCLUDED SECTION
+        ============================================================ */
+        .included {
+            position: relative; background: var(--pure-black);
+            padding: 60px 0 80px;
+        }
+
+        .included-heading {
+            display: flex; align-items: center; gap: 12px;
+            margin-bottom: 32px; padding: 0 20px;
+        }
+
+        .included-heading h2 {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 20px; font-weight: 300;
+            letter-spacing: 0.1em; text-transform: uppercase;
+            color: var(--cream); white-space: nowrap;
+        }
+
+        .included-grid {
+            display: grid; grid-template-columns: repeat(2, 1fr);
+            gap: 12px; padding: 0 20px;
+        }
+
+        .included-card {
+            background: rgba(245, 240, 232, 0.03);
+            border: 1px solid rgba(245, 240, 232, 0.1);
+            border-radius: 8px; padding: 24px 18px;
+            transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+            position: relative; overflow: hidden;
+        }
+
+        .included-card::before {
+            content: ''; position: absolute; top: 0; left: 0;
+            width: 100%; height: 2px;
+            background: linear-gradient(to right, var(--amber), var(--deep-amber));
+            transform: scaleX(0); transform-origin: left;
+            transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        .included-card:hover { background: rgba(245, 240, 232, 0.05); border-color: rgba(245, 240, 232, 0.2); transform: translateY(-3px); }
+        .included-card:hover::before { transform: scaleX(1); }
+
+        .included-icon { font-size: 18px; margin-bottom: 12px; opacity: 0.7; }
+
+        .included-card h3 {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 12px; font-weight: 500;
+            letter-spacing: 0.08em; text-transform: uppercase;
+            color: var(--cream); margin-bottom: 8px;
+        }
+
+        .included-card p {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 13px; line-height: 1.5;
+            color: rgba(245, 240, 232, 0.6);
+        }
+
+        /* ============================================================
+           CONTACT SECTION
+        ============================================================ */
+        .contact {
+            position: relative; min-height: auto;
+            display: flex; align-items: center; overflow: hidden;
+            padding: 40px 0 60px;
+        }
+
+        .contact-bg {
+            position: absolute; inset: 0;
+            background: url('https://images.unsplash.com/photo-1528360983277-13d401cdc186?q=80&w=2940&auto=format&fit=crop') center/cover no-repeat;
+            filter: saturate(0.7) brightness(0.5);
+        }
+
+        .contact-bg::after {
+            content: ''; position: absolute; inset: 0;
+            background: linear-gradient(135deg, rgba(10,10,10,0.7) 0%, rgba(10,10,10,0.4) 50%, rgba(10,10,10,0.6) 100%);
+        }
+
+        .contact-content {
+            position: relative; z-index: 2;
+            width: 90%; margin: 0 auto; padding: 32px 24px;
+            background: rgba(245, 240, 232, 0.05);
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(245, 240, 232, 0.1); border-radius: 12px;
+        }
+
+        .contact-content h3 {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 22px; font-weight: 300; font-style: italic;
+            color: var(--cream); margin-bottom: 6px; line-height: 1.3;
+        }
+
+        .contact-content .subtitle {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 16px; font-weight: 300;
+            color: rgba(245, 240, 232, 0.6); margin-bottom: 28px;
+        }
+
+        .form-group { margin-bottom: 20px; position: relative; }
+
+        .form-group label {
+            display: block; font-family: 'DM Sans', sans-serif;
+            font-size: 9px; font-weight: 400;
+            letter-spacing: 0.18em; text-transform: uppercase;
+            color: rgba(245, 240, 232, 0.5); margin-bottom: 6px;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%; background: transparent; border: none;
+            border-bottom: 1px solid rgba(245, 240, 232, 0.2);
+            padding: 6px 0;
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 15px; color: var(--cream); outline: none;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus { border-bottom-color: var(--amber); }
+
+        .form-group textarea { resize: none; height: 50px; }
+
+        .send-btn {
+            width: 100%; padding: 12px;
+            background: var(--cream); color: var(--charcoal);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 11px; font-weight: 500;
+            letter-spacing: 0.12em; text-transform: uppercase;
+            border: none; border-radius: 4px; cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+            margin-top: 12px;
+        }
+
+        .send-btn:hover { background: var(--amber); color: var(--cream); }
+
+        /* ============================================================
+           FOOTER
+        ============================================================ */
+        .footer {
+            background: var(--pure-black); padding: 24px 20px;
+            display: flex; justify-content: space-between; align-items: center;
+            border-top: 1px solid rgba(245, 240, 232, 0.08);
+        }
+
+        .footer-logo {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 9px; font-weight: 500;
+            letter-spacing: 0.2em; text-transform: uppercase;
+            color: var(--cream); opacity: 0.5;
+            display: flex; align-items: center; gap: 8px;
+        }
+
+        .footer-nav { display: flex; gap: 16px; }
+
+        .footer-nav a {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 9px; font-weight: 400;
+            letter-spacing: 0.1em; text-transform: uppercase;
+            color: var(--cream); text-decoration: none;
+            opacity: 0.4; transition: opacity 0.3s ease;
+        }
+
+        .footer-nav a:hover { opacity: 0.8; }
+
+        .footer-book {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 9px; font-weight: 400;
+            letter-spacing: 0.1em; text-transform: uppercase;
+            color: var(--cream); text-decoration: none;
+            padding: 6px 14px;
+            border: 1px solid rgba(245, 240, 232, 0.3);
+            border-radius: 100px; opacity: 0.5;
+            transition: all 0.3s ease;
+        }
+
+        .footer-book:hover { opacity: 1; background: rgba(245, 240, 232, 0.1); }
+
+        /* ============================================================
+           GENERIC SCROLL ANIMATIONS
+        ============================================================ */
+        .fade-up {
+            opacity: 0; transform: translateY(30px);
+            transition: opacity 0.8s cubic-bezier(0.22, 1, 0.36, 1),
+                        transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        .fade-up.visible { opacity: 1; transform: translateY(0); }
+
+        /* ============================================================
+           FIX #4: BOOKING MODAL
+        ============================================================ */
+        .modal-overlay {
+            position: fixed; inset: 0; z-index: 200;
+            background: rgba(10, 10, 10, 0.82);
+            backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+            display: flex; align-items: flex-end; justify-content: center;
+            opacity: 0; pointer-events: none;
+            transition: opacity 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        .modal-overlay.open {
+            opacity: 1; pointer-events: all;
+        }
+
+        .modal-sheet {
+            width: 100%; max-width: 430px;
+            background: #111;
+            border-top-left-radius: 20px; border-top-right-radius: 20px;
+            border: 1px solid rgba(245, 240, 232, 0.1);
+            border-bottom: none;
+            padding: 0 0 40px;
+            transform: translateY(60px);
+            transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+            max-height: 90vh; overflow-y: auto;
+        }
+
+        .modal-overlay.open .modal-sheet { transform: translateY(0); }
+
+        .modal-handle {
+            width: 36px; height: 4px;
+            background: rgba(245, 240, 232, 0.2);
+            border-radius: 2px; margin: 14px auto 24px;
+        }
+
+        .modal-header {
+            padding: 0 24px 24px;
+            border-bottom: 1px solid rgba(245, 240, 232, 0.08);
+            margin-bottom: 28px;
+        }
+
+        .modal-tag {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 9px; font-weight: 400;
+            letter-spacing: 0.22em; text-transform: uppercase;
+            color: var(--amber); margin-bottom: 8px; display: block;
+        }
+
+        .modal-header h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 26px; font-weight: 300;
+            color: var(--cream); line-height: 1.15;
+        }
+
+        .modal-header p {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 14px; color: rgba(245, 240, 232, 0.5);
+            margin-top: 6px;
+        }
+
+        .modal-body { padding: 0 24px; }
+
+        .modal-option-group { margin-bottom: 28px; }
+
+        .modal-option-label {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 9px; font-weight: 400;
+            letter-spacing: 0.2em; text-transform: uppercase;
+            color: rgba(245, 240, 232, 0.45); margin-bottom: 12px;
+            display: block;
+        }
+
+        .modal-pills {
+            display: flex; flex-wrap: wrap; gap: 8px;
+        }
+
+        .modal-pill {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 11px; font-weight: 400;
+            letter-spacing: 0.06em;
+            color: rgba(245, 240, 232, 0.7);
+            padding: 8px 16px;
+            border: 1px solid rgba(245, 240, 232, 0.15);
+            border-radius: 100px; cursor: pointer; background: transparent;
+            transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        .modal-pill:hover,
+        .modal-pill.selected {
+            background: var(--cream); color: var(--charcoal);
+            border-color: var(--cream);
+        }
+
+        .modal-price-row {
+            display: flex; justify-content: space-between; align-items: flex-end;
+            padding: 20px 0; border-top: 1px solid rgba(245, 240, 232, 0.08);
+            margin-top: 8px;
+        }
+
+        .modal-price-label {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase;
+            color: rgba(245, 240, 232, 0.4);
+        }
+
+        .modal-price {
+            font-family: 'Playfair Display', serif;
+            font-size: 28px; font-weight: 300; color: var(--cream);
+        }
+
+        .modal-price span {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 11px; color: rgba(245, 240, 232, 0.45);
+        }
+
+        .modal-cta {
+            width: 100%; padding: 16px;
+            background: var(--cream); color: var(--charcoal);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 12px; font-weight: 500;
+            letter-spacing: 0.15em; text-transform: uppercase;
+            border: none; border-radius: 8px; cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+            position: relative; overflow: hidden;
+        }
+
+        .modal-cta::before {
+            content: ''; position: absolute; inset: 0;
+            background: linear-gradient(to right, var(--amber), var(--deep-amber));
+            transform: translateX(-100%);
+            transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        .modal-cta:hover::before { transform: translateX(0); }
+        .modal-cta:hover { color: var(--cream); }
+
+        .modal-cta-text { position: relative; z-index: 1; }
+
+        .modal-close {
+            position: absolute; top: 16px; right: 20px;
+            width: 32px; height: 32px; border-radius: 50%;
+            background: rgba(245, 240, 232, 0.06);
+            border: 1px solid rgba(245, 240, 232, 0.1);
+            color: var(--cream); cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 14px; opacity: 0.6;
+            transition: all 0.3s ease;
+        }
+
+        .modal-close:hover { opacity: 1; background: rgba(245, 240, 232, 0.12); }
+    </style>
+</head>
+<body>
+
+    <!-- Navigation -->
+    <nav class="nav" id="navbar">
+        <div class="nav-left">
+            <div class="nav-logo">
+                <div class="globe-icon"></div>
+                JAPAN TOURS
+            </div>
+        </div>
+        <div class="nav-center">
+            <a href="#about" class="nav-link">About</a>
+            <a href="#included" class="nav-link">Included</a>
+            <a href="#contact" class="nav-link">Contacts</a>
+        </div>
+        <div class="nav-right">
+            <a href="#contact" class="book-pill">Book</a>
+        </div>
+    </nav>
+
+    <!-- ============================================================
+         HERO SECTION
+         Layer order (bottom → top):
+           .hero-sky       z:1  — painted sky gradient
+           .hero-type      z:2  — JAPAN text (behind mountains)
+           .hero-bg        z:3  — mountain photo, sky masked out
+           .hero-figure    z:4  — kimono figure
+           .sakura-branch  z:5  — branch overlay
+           UI chrome       z:6  — buttons, social, polaroids
+    ============================================================ -->
+    <section class="hero" id="hero">
+
+        <!-- Sky plane -->
+        <div class="hero-sky" id="heroSky"></div>
+
+        <!-- JAPAN type — will be parallaxed at 0.5x scroll -->
+        <div class="hero-type" id="heroType">
+            <h1>JAPAN</h1>
+        </div>
+
+        <!-- Mountain image — CSS-masked to reveal sky band at top; parallaxed at 0.3x -->
+        <div class="hero-bg" id="heroBg"></div>
+
+        <!-- Kimono figure — fixed, no scroll transform (visual anchor) -->
+        <div class="hero-figure">
+            <img src="https://images.unsplash.com/photo-1528360983277-13d401cdc186?q=80&w=1000&auto=format&fit=crop" alt="Woman in kimono gazing at misty mountains">
+        </div>
+
+        <!-- Sakura branch frame -->
+        <div class="sakura-branch">
+            <img src="https://images.unsplash.com/photo-1522383225653-ed111181a951?q=80&w=800&auto=format&fit=crop" alt="Cherry blossom branch" style="transform: scaleX(-1);">
+        </div>
+
+        <!-- Social stack -->
+        <div class="social-stack">
+            <a href="#" class="social-icon" aria-label="Instagram">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
+            </a>
+            <a href="#" class="social-icon" aria-label="Facebook">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg>
+            </a>
+            <a href="#" class="social-icon" aria-label="Telegram">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+            </a>
+        </div>
+
+        <button class="hero-book-btn" id="heroBookBtn">Book</button>
+
+        <!-- Polaroid Strip — wrapper clips overflow; inner strip shifts on scroll -->
+        <div class="polaroid-strip-wrapper">
+            <div class="polaroid-strip" id="polaroidStrip">
+                <div class="polaroid">
+                    <div class="polaroid-media">
+                        <img src="https://images.unsplash.com/photo-1545569341-9eb8b30979d9?q=80&w=400&auto=format&fit=crop" alt="Kyoto pagoda">
+                    </div>
+                    <span class="polaroid-caption">3 cities in Japan</span>
+                </div>
+                <div class="polaroid">
+                    <div class="polaroid-media">
+                        <img src="https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?q=80&w=400&auto=format&fit=crop" alt="Misty rice fields">
+                    </div>
+                    <span class="polaroid-caption">10 days</span>
+                </div>
+                <div class="polaroid">
+                    <div class="polaroid-media">
+                        <img src="https://images.unsplash.com/photo-1528360983277-13d401cdc186?q=80&w=400&auto=format&fit=crop" alt="Red shrine">
+                    </div>
+                    <span class="polaroid-caption">gigabytes of photos</span>
+                </div>
+                <div class="polaroid">
+                    <div class="polaroid-media">
+                        <img src="https://images.unsplash.com/photo-1553621042-f6e147245754?q=80&w=400&auto=format&fit=crop" alt="Ramen shop steam">
+                    </div>
+                    <span class="polaroid-caption">eat ramen</span>
+                </div>
+                <div class="polaroid">
+                    <div class="polaroid-media">
+                        <img src="https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?q=80&w=400&auto=format&fit=crop" alt="Neon Shinjuku alley">
+                    </div>
+                    <span class="polaroid-caption">enjoy the vibe</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section class="about" id="about">
+        <div class="about-heading">
+            <div class="hairline hairline-left"></div>
+            <h2>About the Tour</h2>
+            <div class="hairline hairline-right"></div>
+        </div>
+
+        <div class="about-grid">
+            <div class="about-text">
+                <p>We've planned a simple and convenient 10-day itinerary for your trip to Japan. You'll visit three cities: <span class="accent-text" data-highlight>Osaka, Kyoto, and Tokyo</span>.</p>
+                <p>No need to worry about routes, schedules, or finding places — everything is already organized. We'll show you where to go, what to see, and where to eat, so you can simply <span class="accent-text" data-highlight>enjoy the journey</span>.</p>
+            </div>
+
+            <!-- ============================================================
+                 TIMELINE — FIX #3
+                 Each .timeline-node starts opacity:0 / translateY(40px).
+                 IntersectionObserver (threshold 0.3, once) adds .visible.
+                 CSS transition-delay drives the 0 / 200ms / 400ms stagger.
+            ============================================================ -->
+            <div class="timeline">
+                <div class="timeline-line"></div>
+
+                <div class="timeline-node" data-delay="0">
+                    <div class="timeline-label">Days 1–3</div>
+                    <div class="timeline-city">Osaka</div>
+                    <div class="photo-cluster">
+                        <img src="https://images.unsplash.com/photo-1590559899731-a382839e5549?q=80&w=400&auto=format&fit=crop" alt="Osaka Castle">
+                        <img src="https://images.unsplash.com/photo-1545569341-9eb8b30979d9?q=80&w=400&auto=format&fit=crop" alt="Osaka Skyline">
+                    </div>
+                </div>
+
+                <div class="timeline-node" data-delay="200">
+                    <div class="timeline-label">Days 4–6</div>
+                    <div class="timeline-city">Kyoto</div>
+                    <div class="photo-cluster">
+                        <img src="https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?q=80&w=400&auto=format&fit=crop" alt="Kyoto Pagoda">
+                        <img src="https://images.unsplash.com/photo-1528360983277-13d401cdc186?q=80&w=400&auto=format&fit=crop" alt="Red Shrine">
+                    </div>
+                </div>
+
+                <div class="timeline-node" data-delay="400">
+                    <div class="timeline-label">Days 7–10</div>
+                    <div class="timeline-city">Tokyo</div>
+                    <div class="photo-cluster">
+                        <img src="https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?q=80&w=400&auto=format&fit=crop" alt="Shibuya Neon">
+                        <img src="https://images.unsplash.com/photo-1503899036084-c55cdd92da26?q=80&w=400&auto=format&fit=crop" alt="Tokyo Street">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Included Section -->
+    <section class="included" id="included">
+        <div class="included-heading">
+            <h2>What's Included</h2>
+            <div class="hairline" style="flex:1; background: linear-gradient(to right, rgba(245,240,232,0.3), transparent);"></div>
+        </div>
+
+        <div class="included-grid">
+            <div class="included-card fade-up">
+                <div class="included-icon">🧭</div>
+                <h3>Guides</h3>
+                <p>2 awesome guides who know everything about Japan!</p>
+            </div>
+            <div class="included-card fade-up">
+                <div class="included-icon">✈️</div>
+                <h3>Flights</h3>
+                <p>Routes: Moscow — Osaka<br>Tokyo — Moscow</p>
+            </div>
+            <div class="included-card fade-up">
+                <div class="included-icon">🚗</div>
+                <h3>Transfers</h3>
+                <p>From the airport to the hotels</p>
+            </div>
+            <div class="included-card fade-up">
+                <div class="included-icon">🏨</div>
+                <h3>Hotels</h3>
+                <p>Comfortable accommodation<br>2 people per room<br>(breakfasts included)</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section class="contact" id="contact">
+        <div class="contact-bg"></div>
+        <div class="contact-content">
+            <h3>Want to join us,<br>but still have questions?</h3>
+            <p class="subtitle">Leave a request</p>
+
+            <form>
+                <div class="form-group">
+                    <label>Your name</label>
+                    <input type="text" placeholder="">
+                </div>
+                <div class="form-group">
+                    <label>Phone number</label>
+                    <input type="tel" placeholder="">
+                </div>
+                <div class="form-group">
+                    <label>Comment</label>
+                    <textarea placeholder=""></textarea>
+                </div>
+                <button type="submit" class="send-btn">Send</button>
+            </form>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-left">
+            <div class="footer-logo">
+                <div class="globe-icon"></div>
+                JAPAN TOURS
+            </div>
+        </div>
+        <div class="footer-nav">
+            <a href="#about">About</a>
+            <a href="#included">Included</a>
+            <a href="#contact">Contacts</a>
+        </div>
+        <a href="#contact" class="footer-book">Book</a>
+    </footer>
+
+    <!-- ============================================================
+         FIX #4: BOOKING MODAL — bottom sheet, date + group pickers
+    ============================================================ -->
+    <div class="modal-overlay" id="bookingModal" role="dialog" aria-modal="true" aria-label="Book your Japan tour">
+        <div class="modal-sheet">
+            <button class="modal-close" id="modalClose" aria-label="Close">✕</button>
+            <div class="modal-handle"></div>
+
+            <div class="modal-header">
+                <span class="modal-tag">Reserve your spot</span>
+                <h2>10-Day Japan<br>Journey</h2>
+                <p>Osaka · Kyoto · Tokyo — All inclusive</p>
+            </div>
+
+            <div class="modal-body">
+                <!-- Departure date selection -->
+                <div class="modal-option-group">
+                    <span class="modal-option-label">Choose departure</span>
+                    <div class="modal-pills" id="datePills">
+                        <button class="modal-pill selected" data-value="mar">Mar 2026</button>
+                        <button class="modal-pill" data-value="apr">Apr 2026</button>
+                        <button class="modal-pill" data-value="may">May 2026</button>
+                        <button class="modal-pill" data-value="sep">Sep 2026</button>
+                        <button class="modal-pill" data-value="oct">Oct 2026</button>
+                    </div>
+                </div>
+
+                <!-- Group size -->
+                <div class="modal-option-group">
+                    <span class="modal-option-label">Group size</span>
+                    <div class="modal-pills" id="groupPills">
+                        <button class="modal-pill selected" data-value="1">Solo</button>
+                        <button class="modal-pill" data-value="2">2 People</button>
+                        <button class="modal-pill" data-value="3">3 People</button>
+                        <button class="modal-pill" data-value="4">4+ People</button>
+                    </div>
+                </div>
+
+                <!-- Room preference -->
+                <div class="modal-option-group">
+                    <span class="modal-option-label">Room preference</span>
+                    <div class="modal-pills" id="roomPills">
+                        <button class="modal-pill selected" data-value="shared">Shared</button>
+                        <button class="modal-pill" data-value="private">Private</button>
+                    </div>
+                </div>
+
+                <!-- Price display -->
+                <div class="modal-price-row">
+                    <div>
+                        <div class="modal-price-label">Total per person</div>
+                        <div class="modal-price" id="modalPrice">$3,200 <span>/ person</span></div>
+                    </div>
+                </div>
+
+                <button class="modal-cta" id="modalCta">
+                    <span class="modal-cta-text">Request a Spot</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    /* ================================================================
+       PRODUCTION JAVASCRIPT
+       1. Navbar scroll class
+       2. Scroll-linked parallax — hero layers (replaces Framer Motion
+          in plain HTML; identical math to useTransform)
+       3. Timeline IntersectionObserver stagger
+       4. Generic fade-up observer
+       5. Text highlight observer
+       6. Booking modal
+       7. Smooth anchor scroll
+    ================================================================ */
+
+    (function () {
+        'use strict';
+
+        /* ── 1. NAVBAR ────────────────────────────────────────────── */
+        const navbar = document.getElementById('navbar');
+        window.addEventListener('scroll', () => {
+            navbar.classList.toggle('scrolled', window.pageYOffset > 80);
+        }, { passive: true });
+
+
+        /* ── 2. SCROLL-LINKED PARALLAX ────────────────────────────── */
+        /*
+         * Mirrors Framer Motion useScroll / useTransform behaviour:
+         *   scrollYProgress = clamp(scrollY / heroHeight, 0, 1)
+         * then map 0→1 to pixel translations at each layer's rate.
+         *
+         * Rates (matching the spec):
+         *   heroBg   (mountain image)  : 0.30 × heroHeight  (slowest)
+         *   heroType (JAPAN text)      : 0.50 × heroHeight  (mid-depth)
+         *   polaroid strip             : -0.40 × heroHeight leftward
+         *   kimono figure              : no transform (visual anchor)
+         */
+        const heroBg      = document.getElementById('heroBg');
+        const heroType    = document.getElementById('heroType');
+        const polaroid    = document.getElementById('polaroidStrip');
+        const heroSection = document.getElementById('hero');
+
+        let heroH = heroSection.offsetHeight;
+        window.addEventListener('resize', () => { heroH = heroSection.offsetHeight; }, { passive: true });
+
+        function applyParallax() {
+            const scrollY = window.pageYOffset;
+            // Only run within the hero scroll range
+            if (scrollY > heroH) return;
+
+            const progress = scrollY / heroH; // 0 → 1 as hero exits viewport
+
+            const bgY      =  progress * heroH * 0.30;  // mountain moves slowly
+            const typeY    =  progress * heroH * 0.50;  // text moves faster → depth illusion
+            const stripX   = -progress * heroH * 0.40;  // polaroids drift left
+
+            heroBg.style.transform    = `translate3d(0, ${bgY}px, 0)`;
+            heroType.style.transform  = `translateX(-50%) translate3d(0, ${typeY}px, 0)`;
+            polaroid.style.transform  = `translate3d(${stripX}px, 0, 0)`;
+        }
+
+        window.addEventListener('scroll', applyParallax, { passive: true });
+        applyParallax(); // run once on load in case page isn't at top
+
+
+        /* ── 3. TIMELINE STAGGER REVEAL ───────────────────────────── */
+        /*
+         * Each .timeline-node starts at opacity:0 / translateY(40px).
+         * data-delay="0|200|400" maps to CSS transition-delay set in
+         * the stylesheet, so we only need to add .visible when the
+         * first node enters the viewport (threshold 0.3).
+         *
+         * Strategy: observe the PARENT .timeline element. When it enters
+         * view (30% threshold), fire all three nodes simultaneously —
+         * their individual CSS transition-delays create the stagger.
+         * This is more robust than three separate observers that might
+         * each trigger at different scroll positions.
+         */
+        const timelineContainer = document.querySelector('.timeline');
+        const timelineNodes     = document.querySelectorAll('.timeline-node');
+
+        const timelineObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (!entry.isIntersecting) return;
+                timelineNodes.forEach(node => node.classList.add('visible'));
+                timelineObserver.disconnect(); // once: true equivalent
+            });
+        }, {
+            threshold: 0.30,
+            rootMargin: '0px 0px -40px 0px'
+        });
+
+        if (timelineContainer) timelineObserver.observe(timelineContainer);
+
+
+        /* ── 4. GENERIC FADE-UP ───────────────────────────────────── */
+        const fadeObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    fadeObserver.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
+
+        document.querySelectorAll('.fade-up').forEach(el => fadeObserver.observe(el));
+
+
+        /* ── 5. TEXT HIGHLIGHT ────────────────────────────────────── */
+        const textObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('highlighted');
+                }
+            });
+        }, { threshold: 0.5 });
+
+        document.querySelectorAll('[data-highlight]').forEach(el => textObserver.observe(el));
+
+
+        /* ── 6. BOOKING MODAL ─────────────────────────────────────── */
+        const modal      = document.getElementById('bookingModal');
+        const modalClose = document.getElementById('modalClose');
+        const heroBook   = document.getElementById('heroBookBtn');
+        const priceEl    = document.getElementById('modalPrice');
+
+        // Price logic
+        const PRICES = {
+            base:    { solo: 3200, '2': 2900, '3': 2700, '4+': 2500 },
+            premium: { solo: 3800, '2': 3400, '3': 3200, '4+': 2900 }  // private room
+        };
+
+        let selectedGroup = 'solo';
+        let selectedRoom  = 'shared';
+
+        function updatePrice() {
+            const table = selectedRoom === 'private' ? PRICES.premium : PRICES.base;
+            const price = table[selectedGroup] || table['solo'];
+            priceEl.innerHTML = `$${price.toLocaleString()} <span>/ person</span>`;
+        }
+
+        function bindPillGroup(containerId, onSelect) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            container.addEventListener('click', e => {
+                const pill = e.target.closest('.modal-pill');
+                if (!pill) return;
+                container.querySelectorAll('.modal-pill').forEach(p => p.classList.remove('selected'));
+                pill.classList.add('selected');
+                onSelect(pill.dataset.value);
+            });
+        }
+
+        bindPillGroup('groupPills', val => {
+            const map = { '1': 'solo', '2': '2', '3': '3', '4': '4+' };
+            selectedGroup = map[val] || val;
+            updatePrice();
+        });
+
+        bindPillGroup('roomPills', val => {
+            selectedRoom = val;
+            updatePrice();
+        });
+
+        // Noop for date pills (no price change, just visual selection)
+        bindPillGroup('datePills', () => {});
+
+        function openModal() {
+            modal.classList.add('open');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() {
+            modal.classList.remove('open');
+            document.body.style.overflow = '';
+        }
+
+        heroBook && heroBook.addEventListener('click', openModal);
+        modalClose && modalClose.addEventListener('click', closeModal);
+
+        // Close on overlay click (not sheet click)
+        modal.addEventListener('click', e => {
+            if (e.target === modal) closeModal();
+        });
+
+        // Close on Escape
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape') closeModal();
+        });
+
+        // CTA — in prod this would open a form or Calendly
+        document.getElementById('modalCta')?.addEventListener('click', () => {
+            const btn = document.getElementById('modalCta');
+            btn.querySelector('.modal-cta-text').textContent = 'Request sent ✓';
+            btn.style.background = '#A67B5B';
+            btn.style.color = 'var(--cream)';
+            setTimeout(closeModal, 1400);
+        });
+
+
+        /* ── 7. SMOOTH ANCHOR SCROLL ──────────────────────────────── */
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
+        });
+
+    })();
+    </script>
+</body>
+</html>
